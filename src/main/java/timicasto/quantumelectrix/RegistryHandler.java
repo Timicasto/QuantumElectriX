@@ -18,10 +18,8 @@ import timicasto.quantumelectrix.block.multiblocks.MultiBlockContactChamber;
 import timicasto.quantumelectrix.block.types.BlockTypesMultiBlock;
 import timicasto.quantumelectrix.fluid.FluidBlockBase;
 import timicasto.quantumelectrix.fluid.FluidLoader;
-import timicasto.quantumelectrix.item.ItemBearing;
-import timicasto.quantumelectrix.item.ItemIngotCopper;
-import timicasto.quantumelectrix.item.ItemPlatinumIngot;
-import timicasto.quantumelectrix.item.ItemToolBox;
+import timicasto.quantumelectrix.item.*;
+import timicasto.quantumelectrix.tile.TileEntityBatteryAdapter;
 import timicasto.quantumelectrix.tile.TileEntityBurningChamber;
 import timicasto.quantumelectrix.tile.TileEntityContactChamber;
 import timicasto.quantumelectrix.tile.TileEntityLargeAssemblyTable;
@@ -63,6 +61,9 @@ public class RegistryHandler {
     public static Block SO2 = new FluidBlockBase(FluidLoader.chemistrySO2);
     public static BlockMultiblock<BlockTypesMultiBlock> BLOCK_MULTI_BLOCK = new BlockInstanceMultiBlock();
     public static Item TOOL_BOX = new ItemToolBox();
+    public static Item VOLTA_BATTERY = new ItemVoltaBattery(237800, 5);
+    public static Block BATTERY_ADAPTER = new BlockBatteryAdapter();
+    public static Item BATTERY_ADAPTER_ITEM = new ItemBlock(BATTERY_ADAPTER);
 
     @SubscribeEvent
     public static void registerBlock(RegistryEvent.Register<Block> event) {
@@ -85,8 +86,10 @@ public class RegistryHandler {
                 PLATINUM_ORE,
                 PYRITES,
                 SO2.setRegistryName("so2").setUnlocalizedName("so2"),
-                BLOCK_MULTI_BLOCK
+                BLOCK_MULTI_BLOCK,
+                BATTERY_ADAPTER
         );
+        GameRegistry.registerTileEntity(TileEntityBatteryAdapter.class, "battery_adapter");
     }
 
     @SubscribeEvent
@@ -109,7 +112,9 @@ public class RegistryHandler {
                 PLATINUM_ORE_ITEM_BLOCK.setRegistryName("platinum_ore"),
                 PLATINUM_INGOT,
                 PYRITES_ITEM.setRegistryName("pyrites"),
-                TOOL_BOX
+                TOOL_BOX,
+                VOLTA_BATTERY,
+                BATTERY_ADAPTER_ITEM.setRegistryName("battery_adapter")
         );
     }
 

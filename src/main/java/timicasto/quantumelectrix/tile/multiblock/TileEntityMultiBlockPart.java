@@ -18,9 +18,7 @@ import net.minecraftforge.fluids.capability.FluidTankProperties;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
-import timicasto.quantumbase.network.PacketMoisture;
 import timicasto.quantumelectrix.api.IDirectionalTile;
 
 import javax.annotation.Nonnull;
@@ -301,7 +299,7 @@ public abstract class TileEntityMultiBlockPart<T extends TileEntityMultiBlockPar
         int blocksPerLevel = structureDimension[1]*structureDimension[2];
         // dist = target position - current position
         int distH = (targetPos/blocksPerLevel)-(pos/blocksPerLevel);
-        int distL = (targetPos%blocksPerLevel / structureDimension[2])-(pos%blocksPerLevel / structureDimension[2]);
+        int distL = (targetPos%blocksPerLevel / structureDimension[2]) -(pos%blocksPerLevel / structureDimension[2]);
         int distW = (targetPos%structureDimension[2])-(pos%structureDimension[2]);
         int w = mirrored?-distW:distW;
         return getPos().offset(facing, distL).offset(facing.rotateY(), w).add(0, distH, 0);

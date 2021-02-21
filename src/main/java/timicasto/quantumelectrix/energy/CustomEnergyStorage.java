@@ -78,6 +78,14 @@ public class CustomEnergyStorage extends EnergyStorage {
         return this;
     }
 
+    public int getMaxReceive() {
+        return this.maxReceive;
+    }
+
+    public int getMaxExtract() {
+        return this.maxExtract;
+    }
+
     public void readFromNBT(NBTTagCompound compound) {
         this.energy = compound.getInteger("Energy");
         this.capacity = compound.getInteger("Capacity");
@@ -91,4 +99,5 @@ public class CustomEnergyStorage extends EnergyStorage {
         compound.setInteger("MaxReceive", this.maxReceive);
         compound.setInteger("MaxExtract", this.maxExtract);
     }
+
 }

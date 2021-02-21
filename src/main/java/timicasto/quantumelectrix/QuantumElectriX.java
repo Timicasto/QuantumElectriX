@@ -1,5 +1,6 @@
 package timicasto.quantumelectrix;
 
+import net.minecraft.init.Items;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -10,8 +11,10 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.oredict.OreDictionary;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import timicasto.quantumelectrix.network.PacketHandler;
 import timicasto.quantumelectrix.proxy.CommonProxy;
 
 @Mod(modid = QuantumElectriX.MODID, name = QuantumElectriX.NAME, version = QuantumElectriX.VERSION)
@@ -32,6 +35,9 @@ public class QuantumElectriX {
     
     @SidedProxy(clientSide = "timicasto.quantumelectrix.proxy.ClientProxy", serverSide = "timicasto.quantumelectrix.proxy.CommonProxy")
     public static CommonProxy proxy;
+
+    // Mod Packet Pipeline
+    public static PacketHandler handler = new PacketHandler();
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {

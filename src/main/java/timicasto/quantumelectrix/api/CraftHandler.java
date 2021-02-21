@@ -1,6 +1,8 @@
 package timicasto.quantumelectrix.api;
 
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import timicasto.quantumbase.utils.MetalSmelterRecipe;
 import timicasto.quantumelectrix.RegistryHandler;
 
