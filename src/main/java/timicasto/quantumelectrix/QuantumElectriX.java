@@ -26,6 +26,8 @@ public class QuantumElectriX {
 
     private SimpleNetworkWrapper networkWrapper;
 
+    public static final PacketHandler packetHandler = new PacketHandler();
+
     static {
         FluidRegistry.enableUniversalBucket();
     }

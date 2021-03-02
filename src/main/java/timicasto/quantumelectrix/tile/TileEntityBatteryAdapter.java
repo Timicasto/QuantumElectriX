@@ -68,7 +68,6 @@ public class TileEntityBatteryAdapter extends TileEntity implements ITickable {
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         this.storage.readFromNBT(compound);
-        Character
         this.energy = compound.getInteger("Energy");
         this.inventory.deserializeNBT(compound.getCompoundTag("Inventory"));
     }

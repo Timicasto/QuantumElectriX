@@ -1,19 +1,24 @@
 package timicasto.quantumelectrix.api;
 
 import io.netty.buffer.ByteBuf;
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.*;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.relauncher.Side;
-import timicasto.quantumelectrix.QuantumElectriX;
+import org.apache.commons.lang3.tuple.Pair;
 import timicasto.quantumelectrix.RegistryHandler;
-import timicasto.quantumelectrix.api.ints.INetworkTile;
+import timicasto.quantumelectrix.api.ints.IActiveState;
 import timicasto.quantumelectrix.energy.CustomEnergyStorage;
 
 import java.io.IOException;
@@ -115,5 +120,141 @@ public class Utils {
             return Side.SERVER;
         }
         return Side.CLIENT;
+    }
+
+    public static boolean isPowered(World world, Coord4D coord) {
+        for (EnumFacing facing : EnumFacing.VALUES) {
+            Coord4D faceCoord = coord.offset(facing);
+            if (faceCoord.exists(world) && faceCoord.offset(facing).exists(world)) {
+                IBlockState state = faceCoord.getBlockState(world);
+                boolean weakRS = state.getBlock().shouldCheckWeakPower(state, world, coord.getPos(), facing);
+                if (weakRS && isDirectlyPowered(world, faceCoord)) {
+                    return true;
+                } else if (!weakRS && state.getWeakPower(world, faceCoord.getPos(), facing) > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean isDirectlyPowered(World world, Coord4D coord) {
+        for (EnumFacing facing : EnumFacing.VALUES) {
+            Coord4D faceCoord = coord.offset(facing);
+            if (faceCoord.exists(world)) {
+                if (world.getRedstonePower(coord.getPos(), facing) > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static void updateBlock(World world, BlockPos pos) {
+        if (!world.isBlockLoaded(pos)) {
+            return;
+        }
+        world.markBlockRangeForRenderUpdate(pos, pos);
+        TileEntity tile = world.getTileEntity(pos);
+        if (!(tile instanceof IActiveState) || ((IActiveState)tile).lightUpdate()) {
+            updateAllLightTypes(world, pos);
+        }
+    }
+
+    public static void updateAllLightTypes(World world, BlockPos pos) {
+        world.checkLightFor(EnumSkyBlock.BLOCK, pos);
+        world.checkLightFor(EnumSkyBlock.SKY, pos);
+    }
+
+    public static Pair<Vec3d, Vec3d> getRayTraceVectors(EntityPlayer player) {
+        float pitch = player.rotationPitch;
+        float yaw = player.rotationYaw;
+        Vec3d start = new Vec3d(player.posX, player.posY + player.getEyeHeight(), player.posZ);
+        float f1 = MathHelper.cos(-yaw * 0.017453292F - (float)Math.PI);
+        float f2 = MathHelper.sin(-yaw * 0.017453292F - (float)Math.PI);
+        float f3 = -MathHelper.cos(-pitch * 0.017453292F);
+        float f4 = MathHelper.sin(-pitch * 0.017453292F);
+        float f5 = f2 * f3;
+        float f6 = f1 * f3;
+        double d3 = 5D;
+        if (player instanceof EntityPlayerMP) {
+            d3 = player.getEntityAttribute(EntityPlayer.REACH_DISTANCE).getAttributeValue();
+        }
+        Vec3d end = start.add(new Vec3d(f5 * d3, f4 * d3, f6 * d3));
+        return Pair.of(start, end);
+    }
+
+    public static class AdvancedRayTraceResultBase<T extends RayTraceResult> {
+        public final AxisAlignedBB bounds;
+        public final T hit;
+        public AdvancedRayTraceResultBase(T mopper, AxisAlignedBB boundBox) {
+            hit = mopper;
+            bounds = boundBox;
+        }
+        public boolean valid() {
+            return hit != null && bounds != null;
+        }
+        public double squareDistanceFrom(Vec3d vector) {
+            return hit.hitVec.squareDistanceTo(vector);
+        }
+    }
+
+    public static class AdvancedRayTraceResult extends AdvancedRayTraceResultBase<RayTraceResult> {
+        public AdvancedRayTraceResult(RayTraceResult mopper, AxisAlignedBB boundBox) {
+            super(mopper, boundBox);
+        }
+    }
+
+    public static AdvancedRayTraceResult collisionTrace(BlockPos pos, Vec3d start, Vec3d end, Collection<AxisAlignedBB> boxes) {
+        double minimumDistance = Double.POSITIVE_INFINITY;
+        AdvancedRayTraceResult hit = null;
+        int i = -1;
+        for (AxisAlignedBB bb : boxes) {
+            AdvancedRayTraceResult result = bb == null ? null : collisionTrace(pos, start, end, bb, i, null);
+            if (result != null) {
+                double d1 = result.squareDistanceFrom(start);
+                if (d1 < minimumDistance) {
+                    minimumDistance = d1;
+                    hit = result;
+                }
+            }
+            i++;
+        }
+        return hit;
+    }
+
+    public static AdvancedRayTraceResult collisionTrace(BlockPos pos, Vec3d start, Vec3d end, AxisAlignedBB bounds, int hit, Object hitInf) {
+        RayTraceResult result = bounds.offset(pos).calculateIntercept(start, end);
+        if (result == null) {
+            return null;
+        }
+        result = new RayTraceResult(RayTraceResult.Type.BLOCK, result.hitVec, result.sideHit, pos);
+        result.subHit = hit;
+        result.hitInfo = hitInf;
+        return new AdvancedRayTraceResult(result, bounds);
+    }
+
+    public static void notifyNeighborChange(World world, Coord4D coord, BlockPos pos) {
+        IBlockState state = coord.getBlockState(world);
+        state.getBlock().onNeighborChange(world, coord.getPos(), pos);
+        state.neighborChanged(world, coord.getPos(), world.getBlockState(pos).getBlock(), pos);
+    }
+
+    public static void notifyTileNeighborsChanged(World world, Coord4D vector) {
+        for (EnumFacing facing : EnumFacing.VALUES) {
+            Coord4D offsetVector = vector.offset(facing);
+            if (offsetVector.exists(world)) {
+                notifyNeighborChange(world, offsetVector, vector.getPos());
+                if (offsetVector.getBlockState(world).isNormalCube()) {
+                    offsetVector = offsetVector.offset(facing);
+                    if (offsetVector.exists(world)) {
+                        Block block = offsetVector.getBlock(world);
+                        if (block.getWeakChanges(world, offsetVector.getPos())) {
+                            block.onNeighborChange(world, offsetVector.getPos(), vector.getPos());
+                        }
+                    }
+                }
+            }
+        }
     }
 }

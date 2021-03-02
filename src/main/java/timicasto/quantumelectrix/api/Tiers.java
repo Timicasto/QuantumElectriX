@@ -1,6 +1,8 @@
 package timicasto.quantumelectrix.api;
 
-public enum Tiers {
+import net.minecraft.util.IStringSerializable;
+
+public enum Tiers implements IStringSerializable {
     max2A(2, Colors.ICE_BLUE),
     max10A(10, Colors.SAKURA);
 
@@ -18,5 +20,10 @@ public enum Tiers {
 
     public Colors getColor() {
         return color;
+    }
+
+    @Override
+    public String getName() {
+        return "tier";
     }
 }
